@@ -19,6 +19,7 @@
 
     <SwitchPreference
         android:key="always_on_display"
+        android:icon="@drawable/ic_eye"
         android:disableDependentsState="true"
         android:title="@string/ambient_display_always_on_title"
         android:summary="@string/ambient_display_always_on_summary"
@@ -44,5 +45,4 @@
             android:title="@string/raise_to_wake_gesture_title" />
 
     </PreferenceCategory>
-
 </PreferenceScreen>

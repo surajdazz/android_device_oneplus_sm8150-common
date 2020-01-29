@@ -21,8 +21,8 @@
      for different hardware and product builds. -->
 <resources>
     <!-- Custom cutout overlay view sizes -->
-    <dimen name="config_customCutoutTopWidth">223.0px</dimen>
-    <dimen name="config_customCutoutTopHeight">223.0px</dimen>
-    <dimen name="config_customCutoutBottomWidth">223.0px</dimen>
-    <dimen name="config_customCutoutBottomHeight">223.0px</dimen>
+    <dimen name="config_customCutoutTopWidth">218.0px</dimen>
+    <dimen name="config_customCutoutTopHeight">218.0px</dimen>
+    <dimen name="config_customCutoutBottomWidth">540.0px</dimen>
+    <dimen name="config_customCutoutBottomHeight">211.0px</dimen>
 </resources>

@@ -122,8 +122,15 @@ public class KeyHandler implements DeviceKeyHandler {
 
         mAudioManager.setRingerModeInternal(sSupportedSliderRingModes.get(keyCodeValue));
         mNotificationManager.setZenMode(sSupportedSliderZenModes.get(keyCodeValue), null, TAG);
+        sendUpdateBroadcast();
         doHapticFeedback();
         return null;
+    }
+
+    private void sendUpdateBroadcast() {
+        Intent intent = new Intent(Constants.ACTION_UPDATE_SLIDER_POSITION);
+        mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
+        intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
     }
 
     private void doHapticFeedback() {

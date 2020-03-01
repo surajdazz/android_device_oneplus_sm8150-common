@@ -83,6 +83,7 @@ ro.control_privapp_permissions=enforce
 # Radio
 DEVICE_PROVISIONED=1
 persist.vendor.data.mode=concurrent
+persist.sys.fflag.override.settings_network_and_internet_v2=true
 ril.subscription.types=NV,RUIM
 ro.telephony.default_network=22,22
 ro.vendor.use_data_netmgrd=true

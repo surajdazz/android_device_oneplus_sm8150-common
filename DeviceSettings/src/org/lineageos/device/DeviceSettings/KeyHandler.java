@@ -19,23 +19,31 @@ package org.lineageos.device.DeviceSettings;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
+import android.net.Uri;
+import android.os.FileObserver;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.os.Vibrator;
-import android.os.VibrationEffect;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.SparseIntArray;
@@ -46,11 +54,17 @@ import com.android.internal.util.ArrayUtils;
 
 import org.lineageos.device.DeviceSettings.Constants;
 
+import vendor.oneplus.camera.CameraHIDL.V1_0.IOnePlusCameraProvider;
+
 public class KeyHandler implements DeviceKeyHandler {
 
     private static final String TAG = KeyHandler.class.getSimpleName();
+    private static final boolean DEBUG = false;
     private static final int GESTURE_REQUEST = 1;
     private static String FPNAV_ENABLED_PROP = "sys.fpnav.enabled";
+    private static String NIGHT_MODE_ENABLED_PROP = "sys.night_mode.enabled";
+    private static String NIGHT_MODE_COLOR_TEMPERATURE_PROP = "sys.night_mode.color_temperature";
+    private static final String DOZE_INTENT = "com.android.systemui.doze.pulse";
 
     private static final SparseIntArray sSupportedSliderZenModes = new SparseIntArray();
     private static final SparseIntArray sSupportedSliderRingModes = new SparseIntArray();
@@ -68,6 +82,12 @@ public class KeyHandler implements DeviceKeyHandler {
         sSupportedSliderRingModes.put(Constants.KEY_VALUE_NORMAL, AudioManager.RINGER_MODE_NORMAL);
     }
 
+    public static final String CLIENT_PACKAGE_NAME = "com.oneplus.camera";
+    public static final String CLIENT_PACKAGE_PATH = "/data/misc/lineage/client_package_name";
+
+    // Single tap key code
+    private static final int SINGLE_TAP = 67;
+
     private final Context mContext;
     private final PowerManager mPowerManager;
     private final NotificationManager mNotificationManager;
@@ -79,9 +99,29 @@ public class KeyHandler implements DeviceKeyHandler {
     WakeLock mGestureWakeLock;
     private int mProximityTimeOut;
     private boolean mProximityWakeSupported;
+    private boolean mDispOn;
+    private ClientPackageNameObserver mClientObserver;
+    private IOnePlusCameraProvider mProvider;
+    private boolean isOPCameraAvail;
+    private Handler mHandler;
+
+    private BroadcastReceiver mSystemStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+                mDispOn = true;
+                onDisplayOn();
+            } else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+                mDispOn = false;
+                onDisplayOff();
+            }
+        }
+    };
 
     public KeyHandler(Context context) {
         mContext = context;
+        mHandler = new Handler(Looper.getMainLooper());
+        mDispOn = true;
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mNotificationManager
                 = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -93,6 +133,69 @@ public class KeyHandler implements DeviceKeyHandler {
         if (mVibrator == null || !mVibrator.hasVibrator()) {
             mVibrator = null;
         }
+
+        IntentFilter systemStateFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        systemStateFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        mContext.registerReceiver(mSystemStateReceiver, systemStateFilter);
+
+        isOPCameraAvail = PackageUtils.isAvailableApp("com.oneplus.camera", context);
+        if (isOPCameraAvail) {
+            mClientObserver = new ClientPackageNameObserver(CLIENT_PACKAGE_PATH);
+            mClientObserver.startWatching();
+        }
+
+        mCustomSettingsObserver.observe();
+        mCustomSettingsObserver.update();
+    }
+
+    private CustomSettingsObserver mCustomSettingsObserver = new CustomSettingsObserver(mHandler);
+    private class CustomSettingsObserver extends ContentObserver {
+
+        CustomSettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.NIGHT_DISPLAY_ACTIVATED),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.NIGHT_DISPLAY_COLOR_TEMPERATURE),
+                    false, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            if (uri.equals(Settings.Secure.getUriFor(
+                    Settings.Secure.NIGHT_DISPLAY_ACTIVATED))) {
+                updateNightModeStatus();
+            } else if (uri.equals(Settings.Secure.getUriFor(
+                    Settings.Secure.NIGHT_DISPLAY_COLOR_TEMPERATURE))) {
+                updateNightModeColorTemperature();
+            }
+        }
+
+        public void update() {
+            updateNightModeStatus();
+            updateNightModeColorTemperature();
+        }
+    }
+
+    private void updateNightModeStatus() {
+        boolean nightModeEnabled = Settings.Secure.getIntForUser(
+                mContext.getContentResolver(), Settings.Secure.NIGHT_DISPLAY_ACTIVATED,
+                0,
+                UserHandle.USER_CURRENT) != 0;
+        SystemProperties.set(NIGHT_MODE_ENABLED_PROP, nightModeEnabled ? "1" : "0");
+    }
+
+    private void updateNightModeColorTemperature() {
+        int colorTemperature = Settings.Secure.getIntForUser(
+                mContext.getContentResolver(), Settings.Secure.NIGHT_DISPLAY_COLOR_TEMPERATURE,
+                -1,
+                UserHandle.USER_CURRENT);
+        SystemProperties.set(NIGHT_MODE_COLOR_TEMPERATURE_PROP, String.valueOf(colorTemperature));
     }
 
     private boolean hasSetupCompleted() {
@@ -103,6 +206,11 @@ public class KeyHandler implements DeviceKeyHandler {
     public KeyEvent handleKeyEvent(KeyEvent event) {
         int scanCode = event.getScanCode();
         String keyCode = Constants.sKeyMap.get(scanCode);
+
+        if (scanCode == SINGLE_TAP) {
+            launchDozePulse();
+            return null;
+        }
         
         int keyCodeValue = 0;
         try {
@@ -140,7 +248,7 @@ public class KeyHandler implements DeviceKeyHandler {
         if (mVibrator == null) {
             return;
         }
-	mVibrator.vibrate(VibrationEffect.get(VibrationEffect.EFFECT_POP));
+	    mVibrator.vibrate(50);
     }
 
     public void handleNavbarToggle(boolean enabled) {
@@ -149,6 +257,48 @@ public class KeyHandler implements DeviceKeyHandler {
 
     public boolean canHandleKeyEvent(KeyEvent event) {
         return false;
+    }
+
+    private void onDisplayOn() {
+        if (DEBUG) Log.i(TAG, "Display on");
+        if ((mClientObserver == null) && (isOPCameraAvail)) {
+            mClientObserver = new ClientPackageNameObserver(CLIENT_PACKAGE_PATH);
+            mClientObserver.startWatching();
+        }
+    }
+
+    private void onDisplayOff() {
+        if (DEBUG) Log.i(TAG, "Display off");
+        if (mClientObserver != null) {
+            mClientObserver.stopWatching();
+            mClientObserver = null;
+        }
+    }
+
+    private class ClientPackageNameObserver extends FileObserver {
+
+        public ClientPackageNameObserver(String file) {
+            super(CLIENT_PACKAGE_PATH, MODIFY);
         }
 
+        @Override
+        public void onEvent(int event, String file) {
+            String pkgName = Utils.getFileValue(CLIENT_PACKAGE_PATH, "0");
+            if (event == FileObserver.MODIFY) {
+                try {
+                    Log.d(TAG, "client_package" + file + " and " + pkgName);
+                    mProvider = IOnePlusCameraProvider.getService();
+                    mProvider.setPackageName(pkgName);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "setPackageName error", e);
+                }
+            }
+        }
+    }
+
+    private void launchDozePulse() {
+        // Note: Only works with ambient display enabled.
+        mContext.sendBroadcastAsUser(new Intent(DOZE_INTENT),
+                new UserHandle(UserHandle.USER_CURRENT));
+    }
 }

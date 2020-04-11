@@ -92,7 +92,7 @@ PRODUCT_ODM_PROPERTIES += \
 
 # Bluetooth
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.bluetooth.a2dp_offload.disabled=true \
+    persist.bluetooth.a2dp_offload.disabled=false \
     persist.bluetooth.a2dp_offload.cap=sbc-aac-aptx-aptxhd-ldac \
     persist.vendor.bt.a2dp_offload_cap=sbc-aptx-aptxtws-aptxhd-aac-ldac \
     persist.vendor.bt.aac_frm_ctl.enabled=true \
@@ -130,9 +130,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     vendor.display.disable_hw_recovery_dump=1 \
     vendor.display.disable_inline_rotator=1 \
     vendor.display.disable_scaler=0 \
-    vendor.display.disable_ui_3d_tonemap=1 \
-    vendor.display.enable_null_display=0 \
-    vendor.display.enable_optimize_refresh=1
+    vendor.display.enable_null_display=0
 
 # DRM
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -159,8 +157,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     debug.egl.hw=0 \
     debug.mdpcomp.logs=0 \
-    debug.sf.hw=1 \
-    debug.sf.latch_unsignaled=0 \
+    debug.sf.hw=0 \
+    debug.sf.latch_unsignaled=1 \
     persist.demo.hdmirotationlock=false \
     persist.sys.sf.color_saturation=1.0 \
     ro.opengles.version=196610 \

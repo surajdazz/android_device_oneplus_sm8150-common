@@ -75,8 +75,8 @@
     <!-- Whether device has dash charging support -->
     <bool name="config_hasDashCharger">true</bool>
 
-    <!-- Does the device have a notification/battery LED? -->
-    <bool name="config_deviceHasLED">false</bool>
+       <!-- Whether device has notification LED -->
+    <bool name="config_hasNotificationLed">false</bool>
 
     <!-- Whether device has physical tri state switch -->
     <bool name="config_hasAlertSlider">true</bool>

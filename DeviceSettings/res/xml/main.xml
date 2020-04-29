@@ -76,16 +76,6 @@
           android:entryValues="@array/notification_slider_action_entry_values" />
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:key="doze"
-        android:title="@string/doze_category_title">
-
-        <SwitchPreference
-            android:key="gesture_single_tap"
-            android:defaultValue="false"
-            android:summary="@string/single_tap_gesture_summary"
-            android:title="@string/single_tap_gesture_title" />
-    </PreferenceCategory>
 
     <PreferenceCategory
         android:key="vibrator"

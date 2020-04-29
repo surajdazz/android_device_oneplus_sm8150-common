@@ -206,11 +206,6 @@ public class KeyHandler implements DeviceKeyHandler {
     public KeyEvent handleKeyEvent(KeyEvent event) {
         int scanCode = event.getScanCode();
         String keyCode = Constants.sKeyMap.get(scanCode);
-
-        if (scanCode == SINGLE_TAP) {
-            launchDozePulse();
-            return null;
-        }
         
         int keyCodeValue = 0;
         try {
@@ -294,11 +289,5 @@ public class KeyHandler implements DeviceKeyHandler {
                 }
             }
         }
-    }
-
-    private void launchDozePulse() {
-        // Note: Only works with ambient display enabled.
-        mContext.sendBroadcastAsUser(new Intent(DOZE_INTENT),
-                new UserHandle(UserHandle.USER_CURRENT));
     }
 }

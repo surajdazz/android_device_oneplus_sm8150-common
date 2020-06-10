@@ -83,7 +83,7 @@ public class KeyHandler implements DeviceKeyHandler {
     }
 
     public static final String CLIENT_PACKAGE_NAME = "com.oneplus.camera";
-    public static final String CLIENT_PACKAGE_PATH = "/data/misc/aosp/client_package_name";
+    public static final String CLIENT_PACKAGE_PATH = "/data/misc/evolution/client_package_name";
 
     // Single tap key code
     private static final int SINGLE_TAP = 67;

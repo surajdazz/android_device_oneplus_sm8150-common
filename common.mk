@@ -377,9 +377,6 @@ PRODUCT_PACKAGES += \
     OnePlusGallery \
     OnePlusCameraService
 
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilts/etc/permissions/privapp-permissions-oem-system.xml:system/etc/permissions/privapp-permissions-oem-system.xml
-
 # QMI
 PRODUCT_PACKAGES += \
     libjson \

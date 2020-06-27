@@ -42,6 +42,10 @@ ro.location.osnlp.region.package=
 debug.sf.enable_hwc_vds=1
 vendor.display.enable_rotator_ui=1
 
+# Google
+ro.opa.eligible_device=true
+ro.build.release_type=release
+
 # HWUI
 ro.hwui.drop_shadow_cache_size=6
 ro.hwui.gradient_cache_size=1

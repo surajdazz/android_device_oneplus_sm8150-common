@@ -88,7 +88,6 @@ public class DozeSettingsFragment extends PreferenceFragment implements OnPrefer
         } else {
             pickupSensorCategory.setDependency(Utils.ALWAYS_ON_DISPLAY);
             mPickUpPreference.setDependency(Utils.GESTURE_RAISE_TO_WAKE_KEY);
-            mPocketPreference.setDependency(Utils.GESTURE_RAISE_TO_WAKE_KEY);
         }
     }
 
@@ -125,6 +124,10 @@ public class DozeSettingsFragment extends PreferenceFragment implements OnPrefer
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         if (Utils.ALWAYS_ON_DISPLAY.equals(preference.getKey())) {
             Utils.enableAlwaysOn(getActivity(), (Boolean) newValue);
+        }
+
+	if (Utils.GESTURE_RAISE_TO_WAKE_KEY.equals(preference.getKey())) {
+	    Utils.setPickUp(getActivity(), (Boolean) newValue);
         }
 
         mHandler.post(() -> Utils.checkDozeService(getActivity()));

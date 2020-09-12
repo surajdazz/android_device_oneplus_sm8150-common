@@ -103,3 +103,13 @@ fix_xml_version product/etc/permissions/vendor.qti.hardware.data.connection-V1.0
 fix_xml_version product/etc/permissions/vendor.qti.hardware.data.connection-V1.1-java.xml
 
 "${MY_DIR}/setup-makefiles.sh"
+
+for i in $(grep -rn 'libhidltransport.so\|libhwbinder.so' ../../../vendor/xiaomi/"${DEVICE_COMMON}"/proprietary | awk '{print $4}'); do
+	patchelf --remove-needed "libhwbinder.so" "$i"
+	patchelf --remove-needed "libhidltransport.so" "$i"
+done
+
+for i in $(grep -rn 'libhidltransport.so\|libhwbinder.so' ../../../vendor/xiaomi/"${DEVICE}"/proprietary | awk '{print $4}'); do
+	patchelf --remove-needed "libhwbinder.so" "$i"
+	patchelf --remove-needed "libhidltransport.so" "$i"
+done
